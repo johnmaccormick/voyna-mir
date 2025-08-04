@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>All Characters (voyna_mir)</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h2>All Characters from voyna_mir.characters</h2>
+  <ul id="character-list">
+    <li>Loading...</li>
+  </ul>
+
+  <script>
+    const SUPABASE_URL = 'https://bknhgiczqeiprhyceies.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbmhnaWN6cWVpcHJoeWNlaWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzODc0NzQsImV4cCI6MjA2Mzk2MzQ3NH0.RB8QJew7EDWxkIOoWL3Mt4zeWtAapSDzkMdN2__HaDo';
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY,
+        {
+            db: {
+            schema: 'voyna_mir' // Replace with the name of your non-public schema
+            }       
+        }
+    );
+
+    async function loadAllCharacters() {
+      const { data, error } = await client
+        .from('characters')
+        .select('name, russian_name')
+        .order('id');
+
+      const list = document.getElementById('character-list');
+      list.innerHTML = '';
+
+      if (error) {
+        const li = document.createElement('li');
+        li.textContent = 'Error: ' + error.message;
+        list.appendChild(li);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'No characters found.';
+        list.appendChild(li);
+        return;
+      }
+
+      for (const character of data) {
+        const li = document.createElement('li');
+        li.textContent = `English: ${character.name} | Russian: ${character.russian_name}`;
+        list.appendChild(li);
+      }
+    }
+
+    loadAllCharacters();
+  </script>
+</body>
+</html>
