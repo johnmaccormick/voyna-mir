@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Insert Person</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h2>Add a New Person</h2>
+
+  <form id="person-form">
+    <label>
+      Name: <input type="text" id="name" required />
+    </label><br><br>
+    <label>
+      Age: <input type="number" id="age" required />
+    </label><br><br>
+    <button type="submit">Add Person</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    const SUPABASE_URL = 'https://bknhgiczqeiprhyceies.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbmhnaWN6cWVpcHJoeWNlaWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzODc0NzQsImV4cCI6MjA2Mzk2MzQ3NH0.RB8QJew7EDWxkIOoWL3Mt4zeWtAapSDzkMdN2__HaDo';
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById('person-form');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const age = parseInt(document.getElementById('age').value, 10);
+
+      if (!name || isNaN(age)) {
+        status.textContent = 'Please enter a valid name and age.';
+        return;
+      }
+
+      const { error } = await client
+        .from('people')
+        .insert([{ name, age }]);
+
+      if (error) {
+        console.error(error);
+        status.textContent = 'Error: ' + error.message;
+      } else {
+        status.textContent = `Inserted ${name} (age ${age}) successfully.`;
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>
