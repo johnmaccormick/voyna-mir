@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Insert Person</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <h2>Add a New Person, with RLS</h2>
+
+    <label for="email">Email:</label>
+    <input id="email" type="email" placeholder="Your email" />
+    <label for="password">Password:</label>
+    <input id="password" type="password" placeholder="Your password" />
+    <button id="signupBtn">Sign Up</button>
+    <button id="loginBtn">Log In</button>
+    <p id="authStatus"></p>
+
+    <hr />
+
+    <form id="person-form">
+      <label> Name: <input type="text" id="name" required /> </label
+      ><br /><br />
+      <label> Age: <input type="number" id="age" required /> </label
+      ><br /><br />
+      <button type="submit">Add Person</button>
+    </form>
+
+    <p id="status"></p>
+
+    <script>
+      const SUPABASE_URL = "https://bknhgiczqeiprhyceies.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbmhnaWN6cWVpcHJoeWNlaWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzODc0NzQsImV4cCI6MjA2Mzk2MzQ3NH0.RB8QJew7EDWxkIOoWL3Mt4zeWtAapSDzkMdN2__HaDo";
+
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // Event listener for sign-up
+      document
+        .getElementById("signupBtn")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          const { data, error } = await client.auth.signUp({
+            email: email,
+            password: password,
+          });
+
+          console.log("Data:", data);
+          console.log("Error:", error);
+
+          if (error) {
+            document.getElementById("authStatus").textContent =
+              "Error: " + error.message;
+          } else {
+            document.getElementById("authStatus").textContent =
+              "Check your email for a confirmation link!";
+          }
+        });
+
+      // Event listener for log in
+      document
+        .getElementById("loginBtn")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          const { data, error } = await client.auth.signInWithPassword({
+            email: email,
+            password: password,
+          });
+
+          console.log("Data:", data);
+          console.log("Error:", error);
+
+          if (error) {
+            document.getElementById("authStatus").textContent =
+              "Error: " + error.message;
+          } else {
+            document.getElementById("authStatus").textContent =
+              "Successfully logged in!";
+          }
+        });
+
+      // Event listener for data insertion
+      const form = document.getElementById("person-form");
+      const status = document.getElementById("status");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const name = document.getElementById("name").value.trim();
+        const age = parseInt(document.getElementById("age").value, 10);
+
+        if (!name || isNaN(age)) {
+          status.textContent = "Please enter a valid name and age.";
+          return;
+        }
+
+        const { error } = await client.from("people2").insert([{ name, age }]);
+
+        console.log("Error:", error);
+
+        if (error) {
+          console.error(error);
+          status.textContent = "Error: " + error.message;
+        } else {
+          status.textContent = `Inserted ${name} (age ${age}) successfully.`;
+          form.reset();
+        }
+      });
+    </script>
+  </body>
+</html>

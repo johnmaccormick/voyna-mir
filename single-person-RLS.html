@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Supabase demo: reading froma table</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h2>Demo: name of one person, with RLS</h2>
+  <p id="person">Loading...</p>
+
+  <script>
+    const SUPABASE_URL = 'https://bknhgiczqeiprhyceies.supabase.co'; // Replace with your project URL
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbmhnaWN6cWVpcHJoeWNlaWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzODc0NzQsImV4cCI6MjA2Mzk2MzQ3NH0.RB8QJew7EDWxkIOoWL3Mt4zeWtAapSDzkMdN2__HaDo'; // Replace with your anon key
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadMessage() {
+      const { data, error } = await client
+        .from('people2')
+        .select('name')
+        .eq('id', 1)
+        .single();
+
+      console.log("Data:", data);
+      console.log("Error:", error);
+
+      if (error) {
+        document.getElementById('person').textContent = 'Error: ' + error.message;
+      } else if (data) {
+        document.getElementById('person').textContent = data.name;
+      } else {
+        document.getElementById('person').textContent = 'No data found.';
+      }
+    }
+
+    loadMessage();
+  </script>
+</body>
+</html>

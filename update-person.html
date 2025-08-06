@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Update Person</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h2>Update a person's age</h2>
+
+  <form id="person-form">
+    <label>
+      id: <input type="number" id="person-id" required />
+    </label><br><br>
+    <label>
+      Age: <input type="number" id="age" required />
+    </label><br><br>
+    <button type="submit">Update age</button>
+  </form>
+
+  <p id="status"></p>
+
+  <script>
+    const SUPABASE_URL = 'https://bknhgiczqeiprhyceies.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbmhnaWN6cWVpcHJoeWNlaWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzODc0NzQsImV4cCI6MjA2Mzk2MzQ3NH0.RB8QJew7EDWxkIOoWL3Mt4zeWtAapSDzkMdN2__HaDo';
+
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const form = document.getElementById('person-form');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const person_id = parseInt(document.getElementById('person-id').value, 10);
+      const new_age = parseInt(document.getElementById('age').value, 10);
+
+      if (isNaN(person_id) || isNaN(new_age)) {
+        status.textContent = 'Please enter a valid id and age.';
+        return;
+      }
+
+
+    //   console.log("person_id:", person_id);
+    //   console.log("new_age:", new_age);
+
+      const { error } = await client
+        .from('people')
+        .update({ age: new_age })
+        .eq('id', person_id)
+
+
+      if (error) {
+        console.error(error);
+        status.textContent = 'Error: ' + error.message;
+      } else {
+        status.textContent = `Updated ${person_id} to age ${new_age} successfully.`;
+        form.reset();
+      }
+    });
+  </script>
+</body>
+</html>
