@@ -1,26 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Supabase demo: reading froma table</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-  <h2>Supabase demos</h2>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Supabase demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <h1>Supabase demo</h1>
 
-  <ul>
-    <li><a href="single-character.html">name of one character</a></li>
-    <li><a href="single-character-with-russian.html">name of one character in English and Russian</a></li>
-    <li><a href="all-characters.html">Russian and Elnglish names of all characters</a></li>
-    <li><a href="all-chars-schema.html">Same, but from the voyna-mir schema</a>
-      (previous demos used the public schema)</li>
-    <li><a href="insert-person.html">Insert a new person into the people table</a></li>
-    <li><a href="update-person.html">Update age of a person in the people table</a></li>
-    <li><a href="single-person-RLS.html">Display name of one person in people2 table (with RLS)</a></li>
-    <li><a href="insert-person-RLS.html">Insert a new person into the people2 table (with RLS)</a></li>
-      
-  </ul>
+    <h2>Sign-up and login</h2>
 
-  
-</body>
+    <div id="authContainer">
+      <label for="email">Email:</label>
+      <input id="email" type="email" placeholder="Your email" />
+      <label for="password">Password:</label>
+      <input id="password" type="password" placeholder="Your password" />
+      <button id="signupBtn">Sign Up</button>
+      <button id="loginBtn">Log In</button>
+      <p id="authStatus"></p>
+    </div>
+
+    <div id="logoutContainer" style="display: none">
+      <p id="userMessage"></p>
+      <button id="logoutBtn">Log Out</button>
+    </div>
+
+    <h3>Forgot Password?</h3>
+    <p>Enter your email to receive a password reset link.</p>
+    <button id="resetPasswordBtn">Reset Password</button>
+    <p id="resetStatus"></p>
+
+    <h2>Demo actions</h2>
+
+    <ul>
+      <li><a href="single-character.html">name of one character</a></li>
+      <li>
+        <a href="single-character-with-russian.html"
+          >name of one character in English and Russian</a
+        >
+      </li>
+      <li>
+        <a href="all-characters.html"
+          >Russian and Elnglish names of all characters</a
+        >
+      </li>
+      <li>
+        <a href="all-chars-schema.html">Same, but from the voyna-mir schema</a>
+        (previous demos used the public schema)
+      </li>
+      <li>
+        <a href="insert-person.html"
+          >Insert a new person into the people table</a
+        >
+      </li>
+      <li>
+        <a href="update-person.html"
+          >Update age of a person in the people table</a
+        >
+      </li>
+      <li>
+        <a href="single-person-RLS.html"
+          >Display name of one person in people2 table (with RLS)</a
+        >
+      </li>
+      <li>
+        <a href="insert-person-RLS.html"
+          >Insert a new person into the people2 table (with RLS)</a
+        >
+      </li>
+      <li>
+        <a href="update-person-RLS.html"
+          >Update age of a person in the people2 table (with RLS)</a
+        >
+      </li>
+    </ul>
+
+    <script>
+      const SUPABASE_URL = "https://bknhgiczqeiprhyceies.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbmhnaWN6cWVpcHJoeWNlaWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzODc0NzQsImV4cCI6MjA2Mzk2MzQ3NH0.RB8QJew7EDWxkIOoWL3Mt4zeWtAapSDzkMdN2__HaDo";
+
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const authContainer = document.getElementById("authContainer");
+      const logoutContainer = document.getElementById("logoutContainer");
+      const userMessage = document.getElementById("userMessage");
+
+      // Function to check if a user is logged in and update the UI
+      async function checkUserSession() {
+        const {
+          data: { user },
+        } = await client.auth.getUser();
+        if (user) {
+          authContainer.style.display = "none";
+          logoutContainer.style.display = "block";
+          userMessage.textContent = "You are logged in as: " + user.email;
+        } else {
+          authContainer.style.display = "block";
+          logoutContainer.style.display = "none";
+        }
+      }
+
+      // Event listener for sign-up
+      document
+        .getElementById("signupBtn")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          const { data, error } = await client.auth.signUp({
+            email: email,
+            password: password,
+          });
+
+          console.log("Data:", data);
+          console.log("Error:", error);
+
+          if (error) {
+            document.getElementById("authStatus").textContent =
+              "Error: " + error.message;
+          } else {
+            document.getElementById("authStatus").textContent =
+              "Check your email for a confirmation link!";
+          }
+        });
+
+      // Event listener for log in
+      document
+        .getElementById("loginBtn")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          const { data, error } = await client.auth.signInWithPassword({
+            email: email,
+            password: password,
+          });
+
+          console.log("Data:", data);
+          console.log("Error:", error);
+
+          if (error) {
+            document.getElementById("authStatus").textContent =
+              "Error: " + error.message;
+          } else {
+            document.getElementById("authStatus").textContent =
+              "Successfully logged in!";
+          }
+        });
+
+      // Event listener for password reset
+      document
+        .getElementById("resetPasswordBtn")
+        .addEventListener("click", async () => {
+          const email = document.getElementById("email").value;
+
+          const { error } = await client.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin + "/update-password.html",
+          });
+
+          if (error) {
+            document.getElementById("resetStatus").textContent =
+              "Error: " + error.message;
+          } else {
+            document.getElementById("resetStatus").textContent =
+              "Password reset email sent. Check your inbox!";
+          }
+        });
+
+      // Event listener for logout
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", async () => {
+          const { error } = await client.auth.signOut();
+          if (error) {
+            console.error("Logout error:", error.message);
+          } else {
+            // Redirect or simply refresh the page to show the login form
+            window.location.reload();
+          }
+        });
+
+      // Initial check on page load
+      checkUserSession();
+
+      // Listen for auth state changes to update the UI in real-time
+      client.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_OUT") {
+          window.location.reload();
+        }
+      });
+    </script>
+  </body>
 </html>

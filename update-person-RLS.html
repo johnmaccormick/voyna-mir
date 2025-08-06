@@ -2,19 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Insert Person</title>
+    <title>Update Person with RLS</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
-    <h2>Add a New Person, with RLS</h2>
-
+    <h2>Update a person's age (RLS enabled)</h2>
 
     <form id="person-form">
-      <label> Name: <input type="text" id="name" required /> </label
+      <label> id: <input type="number" id="person-id" required /> </label
       ><br /><br />
       <label> Age: <input type="number" id="age" required /> </label
       ><br /><br />
-      <button type="submit">Add Person</button>
+      <button type="submit">Update age</button>
     </form>
 
     <p id="status"></p>
@@ -26,31 +25,50 @@
 
       const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-
-      // Event listener for data insertion
       const form = document.getElementById("person-form");
       const status = document.getElementById("status");
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        const name = document.getElementById("name").value.trim();
-        const age = parseInt(document.getElementById("age").value, 10);
+        const person_id = parseInt(
+          document.getElementById("person-id").value,
+          10
+        );
+        const new_age = parseInt(document.getElementById("age").value, 10);
 
-        if (!name || isNaN(age)) {
-          status.textContent = "Please enter a valid name and age.";
+        if (isNaN(person_id) || isNaN(new_age)) {
+          status.textContent = "Please enter a valid id and age.";
           return;
         }
 
-        const { error } = await client.from("people2").insert([{ name, age }]);
+        console.log("person_id:", person_id);
+        console.log("new_age:", new_age);
 
+        const { data, error } = await client
+          .from("people2")
+          .update({ age: new_age })
+          .eq("id", person_id)
+          .select();
+
+        console.log("Data:", data);
         console.log("Error:", error);
+
+        if (data.length > 0 && data[0].name) {
+          person_name = data[0].name;
+        } else {
+          person_name = null;
+        }
+        console.log("Person name:", person_name);
 
         if (error) {
           console.error(error);
           status.textContent = "Error: " + error.message;
+        } else if (person_name) {
+          status.textContent = `Updated id ${person_id} (name ${person_name}) to age ${new_age} successfully.`;
+          form.reset();
         } else {
-          status.textContent = `Inserted ${name} (age ${age}) successfully.`;
+          status.textContent = `Couldn't update id ${person_id}.`;
           form.reset();
         }
       });
