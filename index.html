@@ -8,9 +8,14 @@
   <body>
     <h1>Supabase demo</h1>
 
-    <h2>Sign-up and login</h2>
-
     <div id="authContainer">
+      <h2>Sign-up and login</h2>
+
+      <p>
+        By default, only dickinson.edu email addresses are permitted. To use a
+        different email address, please contact the database administrator.
+      </p>
+
       <label for="email">Email:</label>
       <input id="email" type="email" placeholder="Your email" />
       <label for="password">Password:</label>
@@ -25,10 +30,12 @@
       <button id="logoutBtn">Log Out</button>
     </div>
 
-    <h3>Forgot Password?</h3>
-    <p>Enter your email to receive a password reset link.</p>
-    <button id="resetPasswordBtn">Reset Password</button>
-    <p id="resetStatus"></p>
+    <div id="forgotPwdContainer">
+      <h3>Forgot Password?</h3>
+      <p>Enter your email above to receive a password reset link.</p>
+      <button id="resetPasswordBtn">Reset Password</button>
+      <p id="resetStatus"></p>
+    </div>
 
     <h2>Demo actions</h2>
 
@@ -75,15 +82,12 @@
       </li>
     </ul>
 
-    <script>
-      const SUPABASE_URL = "https://bknhgiczqeiprhyceies.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJrbmhnaWN6cWVpcHJoeWNlaWVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgzODc0NzQsImV4cCI6MjA2Mzk2MzQ3NH0.RB8QJew7EDWxkIOoWL3Mt4zeWtAapSDzkMdN2__HaDo";
-
-      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    <script type="module">
+      import { client } from "./supabaseClient.js";
 
       const authContainer = document.getElementById("authContainer");
       const logoutContainer = document.getElementById("logoutContainer");
+      const forgotPwdContainer = document.getElementById("forgotPwdContainer");
       const userMessage = document.getElementById("userMessage");
 
       // Function to check if a user is logged in and update the UI
@@ -94,11 +98,21 @@
         if (user) {
           authContainer.style.display = "none";
           logoutContainer.style.display = "block";
+          forgotPwdContainer.style.display = "none";
           userMessage.textContent = "You are logged in as: " + user.email;
         } else {
           authContainer.style.display = "block";
+          forgotPwdContainer.style.display = "block";
           logoutContainer.style.display = "none";
         }
+      }
+
+      function isValidEmailDomain(email) {
+
+        const emailRegex =
+          /^[a-zA-Z0-9._%+-]+@(dickinson\.edu|arawatabill\.org)$/;
+
+        return emailRegex.test(email);
       }
 
       // Event listener for sign-up
@@ -107,6 +121,12 @@
         .addEventListener("click", async () => {
           const email = document.getElementById("email").value;
           const password = document.getElementById("password").value;
+
+          if (!isValidEmailDomain(email)) {
+            document.getElementById("authStatus").textContent =
+              "Please use a dickinson.edu email address.";
+            return;
+          }
 
           const { data, error } = await client.auth.signUp({
             email: email,
@@ -117,8 +137,10 @@
           console.log("Error:", error);
 
           if (error) {
-            document.getElementById("authStatus").textContent =
-              "Error: " + error.message;
+            document.getElementById(
+              "authStatus"
+            ).textContent = `There was an error during sign-up. Perhaps the email address is invalid.\n 
+              The error message from the database server was: \n"${error.message}"`;
           } else {
             document.getElementById("authStatus").textContent =
               "Check your email for a confirmation link!";
@@ -145,7 +167,9 @@
               "Error: " + error.message;
           } else {
             document.getElementById("authStatus").textContent =
-              "Successfully logged in!";
+              "Successfully logged in.";
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for 2 seconds
+            checkUserSession(); // Update UI after login
           }
         });
 
@@ -164,7 +188,7 @@
               "Error: " + error.message;
           } else {
             document.getElementById("resetStatus").textContent =
-              "Password reset email sent. Check your inbox!";
+              "If the email is registered to an existing account, a password reset email was sent.";
           }
         });
 
